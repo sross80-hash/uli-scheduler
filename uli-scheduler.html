@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ULI Interview Scheduler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       ULI SCHEDULER — CUSTOMISATION SECTION
+       All text, roles, panelists, slots and colours live here.
+       You should not need to touch anything below line ~250.
+    ============================================================ */
+
+    :root {
+      --uli-navy:        #1a2f4a;
+      --uli-gold:        #c4922a;
+      --uli-gold-light:  #f5e8cc;
+      --uli-cream:       #faf8f4;
+      --uli-slate:       #4a5568;
+      --uli-muted:       #8896a5;
+      --uli-border:      rgba(26,47,74,0.10);
+      --uli-border-s:    rgba(26,47,74,0.22);
+      --uli-green:       #2d7a3a;
+      --uli-green-bg:    #e6f4ea;
+      --uli-red:         #b03a2e;
+      --uli-red-bg:      #fceae8;
+      --font-display:    'DM Serif Display', Georgia, serif;
+      --font-body:       'DM Sans', system-ui, sans-serif;
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background: #f0ede6;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 16px 64px;
+    }
+
+    .card {
+      background: var(--uli-cream);
+      border-radius: 12px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+      overflow: hidden;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* ============================================================
+       HEADER
+    ============================================================ */
+    .hdr {
+      background: var(--uli-navy);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+    }
+
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: var(--uli-gold);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-mark span {
+      font-family: var(--font-display);
+      font-size: 15px; color: #fff;
+      font-style: italic; letter-spacing: -0.5px;
+    }
+
+    .hdr-text h1 {
+      font-family: var(--font-display);
+      font-size: 17px; color: #fff; font-weight: 400;
+    }
+
+    .hdr-text p {
+      font-size: 11px; color: rgba(255,255,255,0.5);
+      text-transform: uppercase; letter-spacing: 0.07em; margin-top: 1px;
+    }
+
+    .hdr-tabs { margin-left: auto; display: flex; gap: 4px; }
+
+    .htab {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.55);
+      font-size: 10px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      cursor: pointer; font-family: var(--font-body);
+      transition: all 0.15s;
+    }
+
+    .htab.active, .htab:hover {
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    /* ============================================================
+       LAYOUT — SIDEBAR + MAIN
+    ============================================================ */
+    .body-wrap { display: flex; min-height: 480px; }
+
+    .sidebar {
+      width: 230px; flex-shrink: 0;
+      border-right: 1px solid var(--uli-border);
+      background: #fff;
+      display: flex; flex-direction: column;
+    }
+
+    .sb-top {
+      padding: 20px 18px;
+      border-bottom: 1px solid var(--uli-border);
+    }
+
+    .role-badge {
+      background: var(--uli-gold-light); color: var(--uli-gold);
+      font-size: 9px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.09em;
+      padding: 3px 8px; border-radius: 3px;
+      display: inline-block; margin-bottom: 9px;
+    }
+
+    .sb-role {
+      font-family: var(--font-display);
+      font-size: 15px; color: var(--uli-navy);
+      line-height: 1.3; margin-bottom: 14px;
+    }
+
+    .meta-row {
+      display: flex; align-items: flex-start;
+      gap: 7px; font-size: 11.5px;
+      color: var(--uli-slate); line-height: 1.4;
+      margin-bottom: 7px;
+    }
+
+    .meta-row svg { flex-shrink: 0; margin-top: 1px; }
+
+    .sb-panel { padding: 16px 18px; flex: 1; }
+
+    .sb-panel-title {
+      font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.09em; color: var(--uli-muted);
+      font-weight: 500; margin-bottom: 10px;
+    }
+
+    .iv-card {
+      display: flex; align-items: center;
+      gap: 8px; padding: 8px 10px;
+      background: var(--uli-cream);
+      border: 1px solid var(--uli-border);
+      border-radius: 6px; margin-bottom: 6px;
+      position: relative;
+    }
+
+    .iv-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 500; color: #fff; flex-shrink: 0;
+    }
+
+    .iv-info p:first-child { font-size: 11.5px; font-weight: 500; color: var(--uli-navy); }
+    .iv-info p:last-child  { font-size: 10px; color: var(--uli-muted); }
+
+    .avail-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    }
+    .avail-dot.available { background: var(--uli-green); }
+    .avail-dot.busy      { background: #e53e3e; }
+    .avail-dot.unknown   { background: var(--uli-muted); }
+
+    /* ============================================================
+       MAIN CONTENT AREA
+    ============================================================ */
+    .main { flex: 1; padding: 22px 24px; display: flex; flex-direction: column; }
+
+    /* Steps */
+    .steps { display: flex; align-items: center; margin-bottom: 20px; }
+
+    .step-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    .step-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 500; border: 1.5px solid;
+      transition: all 0.25s;
+    }
+
+    .step-dot.active  { background: var(--uli-navy); border-color: var(--uli-navy); color: #fff; }
+    .step-dot.done    { background: var(--uli-gold); border-color: var(--uli-gold); color: #fff; }
+    .step-dot.pending { background: transparent; border-color: var(--uli-border-s); color: var(--uli-muted); }
+
+    .step-lbl.active  { color: var(--uli-navy); }
+    .step-lbl.done    { color: var(--uli-gold); }
+    .step-lbl.pending { color: var(--uli-muted); }
+
+    .step-line { flex: 1; height: 1px; background: var(--uli-border); margin: 0 8px; max-width: 32px; }
+
+    /* Panel title */
+    .ptitle { font-family: var(--font-display); font-size: 19px; color: var(--uli-navy); font-weight: 400; margin-bottom: 3px; }
+    .psub   { font-size: 12px; color: var(--uli-muted); margin-bottom: 18px; font-weight: 300; }
+
+    /* Calendar */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+    .cal-btn {
+      width: 26px; height: 26px;
+      border: 1px solid var(--uli-border-s); background: #fff;
+      border-radius: 4px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--uli-slate); font-size: 14px; transition: all 0.15s;
+    }
+    .cal-btn:hover { background: var(--uli-navy); color: #fff; border-color: var(--uli-navy); }
+
+    .cal-month { font-size: 12px; font-weight: 500; color: var(--uli-navy); }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; margin-bottom: 14px; }
+
+    .cal-wday {
+      text-align: center; font-size: 9px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--uli-muted); padding-bottom: 5px; font-weight: 500;
+    }
+
+    .cal-day {
+      text-align: center; padding: 5px 2px;
+      font-size: 11px; border-radius: 4px;
+      cursor: default; color: var(--uli-muted);
+      transition: all 0.15s; line-height: 1.2;
+    }
+
+    .cal-day.all {
+      color: var(--uli-navy); cursor: pointer;
+      background: #fff; border: 1px solid var(--uli-border); font-weight: 500;
+    }
+    .cal-day.all:hover { background: var(--uli-navy); color: #fff; border-color: var(--uli-navy); }
+
+    .cal-day.partial {
+      color: var(--uli-navy); cursor: pointer;
+      background: #fffbf5; border: 1px solid rgba(196,146,42,0.3); font-weight: 500;
+    }
+    .cal-day.partial:hover { background: var(--uli-gold-light); border-color: var(--uli-gold); }
+
+    .cal-day.sel { background: var(--uli-navy) !important; color: #fff !important; border-color: var(--uli-navy) !important; }
+
+    .dot-row { display: flex; justify-content: center; gap: 2px; margin-top: 2px; }
+    .dot-pip  { width: 3px; height: 3px; border-radius: 50%; }
+
+    /* Legend */
+    .legend { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+    .leg-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--uli-muted); }
+    .leg-swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+    /* Slot list */
+    .slots-hdr { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--uli-muted); font-weight: 500; margin-bottom: 8px; }
+
+    .slot-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; background: #fff;
+      border: 1px solid var(--uli-border); border-radius: 6px;
+      margin-bottom: 5px; cursor: pointer; transition: all 0.15s;
+    }
+    .slot-row:hover { border-color: var(--uli-navy); background: rgba(26,47,74,0.03); }
+    .slot-row.sel   { background: var(--uli-navy); border-color: var(--uli-navy); }
+
+    .slot-time { font-size: 12px; font-weight: 500; color: var(--uli-navy); min-width: 70px; }
+    .slot-row.sel .slot-time { color: #fff; }
+
+    .slot-chips { display: flex; gap: 4px; flex: 1; }
+
+    .chip {
+      display: flex; align-items: center; gap: 4px;
+      padding: 2px 7px; border-radius: 10px;
+      font-size: 10px; font-weight: 500;
+    }
+    .chip.av   { background: var(--uli-green-bg); color: var(--uli-green); }
+    .chip.dark { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
+    .chip.un   { background: var(--uli-red-bg); color: var(--uli-red); opacity: 0.7; }
+    .chip-dot  { width: 5px; height: 5px; border-radius: 50%; }
+
+    .slot-cov  { font-size: 10px; color: var(--uli-muted); white-space: nowrap; }
+    .slot-row.sel .slot-cov { color: rgba(255,255,255,0.6); }
+
+    .full-badge {
+      font-size: 9px; padding: 2px 7px; border-radius: 3px;
+      background: var(--uli-green-bg); color: var(--uli-green);
+      font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .slot-row.sel .full-badge { background: rgba(255,255,255,0.2); color: #fff; }
+
+    /* Format toggle */
+    .fmt-row { display: flex; gap: 6px; margin-bottom: 14px; }
+    .fmt-btn {
+      flex: 1; padding: 9px 6px;
+      background: #fff; border: 1px solid var(--uli-border-s);
+      border-radius: 5px; cursor: pointer;
+      font-size: 11px; font-weight: 500; color: var(--uli-slate);
+      font-family: var(--font-body); text-align: center; transition: all 0.15s;
+    }
+    .fmt-btn.active { background: var(--uli-navy); color: #fff; border-color: var(--uli-navy); }
+    .fmt-btn:hover:not(.active) { border-color: var(--uli-navy); color: var(--uli-navy); }
+
+    /* Forms */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .f-field { display: flex; flex-direction: column; gap: 4px; }
+    .f-field.full { grid-column: 1 / -1; }
+
+    .f-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--uli-slate); }
+
+    .f-input {
+      padding: 8px 10px; border: 1px solid var(--uli-border-s);
+      border-radius: 5px; font-size: 12.5px;
+      font-family: var(--font-body); color: var(--uli-navy);
+      background: #fff; outline: none; transition: border-color 0.15s;
+    }
+    .f-input:focus { border-color: var(--uli-navy); }
+
+    /* Summary / confirm cards */
+    .sum-card {
+      background: #fff; border: 1px solid var(--uli-border);
+      border-radius: 8px; padding: 12px 14px;
+      margin-bottom: 14px; display: flex; gap: 10px;
+    }
+    .sum-icon { width: 34px; height: 34px; background: var(--uli-gold-light); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+    .sum-text p:first-child { font-size: 12.5px; font-weight: 500; color: var(--uli-navy); }
+    .sum-text p:last-child  { font-size: 11px; color: var(--uli-muted); margin-top: 2px; }
+
+    .panel-preview { background: #fff; border: 1px solid var(--uli-border); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+    .pp-hdr { background: var(--uli-navy); padding: 8px 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(255,255,255,0.65); font-weight: 500; }
+    .pp-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--uli-border); font-size: 11.5px; }
+    .pp-row:last-child { border-bottom: none; }
+
+    .conf-block { background: #fff; border: 1px solid var(--uli-border); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+    .conf-row { display: flex; justify-content: space-between; font-size: 11.5px; padding: 7px 14px; border-bottom: 1px solid var(--uli-border); }
+    .conf-row:last-child { border-bottom: none; }
+    .conf-row .lbl { color: var(--uli-muted); }
+    .conf-row .val { color: var(--uli-navy); font-weight: 500; }
+
+    /* Info box */
+    .info-box {
+      background: #fffbf5; border: 1px solid rgba(196,146,42,0.3);
+      border-radius: 6px; padding: 10px 12px;
+      font-size: 11.5px; color: var(--uli-slate);
+      margin-bottom: 12px; line-height: 1.5;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      padding: 10px 22px; background: var(--uli-navy); color: #fff;
+      border: none; border-radius: 5px;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; font-family: var(--font-body);
+      transition: all 0.15s; letter-spacing: 0.01em;
+    }
+    .btn-primary:hover:not(:disabled) { background: #243f5c; }
+    .btn-primary:disabled { opacity: 0.35; cursor: default; }
+
+    .btn-sec {
+      padding: 9px 16px; background: transparent; color: var(--uli-slate);
+      border: 1px solid var(--uli-border-s); border-radius: 5px;
+      font-size: 12px; cursor: pointer; font-family: var(--font-body);
+      margin-right: 8px; transition: all 0.15s;
+    }
+    .btn-sec:hover { background: rgba(26,47,74,0.05); }
+
+    .btn-outline {
+      padding: 9px 20px; background: transparent; color: var(--uli-navy);
+      border: 1.5px solid var(--uli-navy); border-radius: 5px;
+      font-size: 11.5px; font-weight: 500;
+      cursor: pointer; font-family: var(--font-body); transition: all 0.15s;
+    }
+    .btn-outline:hover { background: var(--uli-navy); color: #fff; }
+
+    /* Success screen */
+    .success { text-align: center; padding: 28px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .success-check { width: 56px; height: 56px; border-radius: 50%; background: var(--uli-gold-light); border: 2px solid var(--uli-gold); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .success-title { font-family: var(--font-display); font-size: 22px; color: var(--uli-navy); font-weight: 400; }
+    .success-sub { font-size: 12.5px; color: var(--uli-muted); max-width: 360px; line-height: 1.6; }
+
+    /* No slots */
+    .no-slots { padding: 16px; text-align: center; color: var(--uli-muted); font-size: 12px; font-style: italic; background: #fff; border: 1px dashed var(--uli-border); border-radius: 6px; }
+
+    /* Scrollable slot list */
+    .slot-scroll { max-height: 220px; overflow-y: auto; padding-right: 2px; }
+    .slot-scroll::-webkit-scrollbar { width: 4px; }
+    .slot-scroll::-webkit-scrollbar-thumb { background: var(--uli-border-s); border-radius: 2px; }
+
+    /* ============================================================
+       ADMIN VIEW
+    ============================================================ */
+    .admin-wrap { padding: 22px 24px; }
+    .admin-sec-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--uli-muted); font-weight: 500; margin-bottom: 12px; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px; }
+    .stat-card { background: #fff; border: 1px solid var(--uli-border); border-radius: 7px; padding: 10px 12px; }
+    .stat-card .num { font-family: var(--font-display); font-size: 24px; color: var(--uli-navy); font-weight: 400; line-height: 1; }
+    .stat-card .lbl { font-size: 9px; color: var(--uli-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 3px; }
+
+    .booking-table { background: #fff; border: 1px solid var(--uli-border); border-radius: 7px; overflow: hidden; }
+    .bt-row { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr 0.8fr 70px; padding: 8px 12px; gap: 8px; align-items: center; font-size: 11px; border-bottom: 1px solid var(--uli-border); }
+    .bt-row:last-child { border-bottom: none; }
+    .bt-row.hdr { background: var(--uli-navy); color: rgba(255,255,255,0.65); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; font-size: 9px; }
+    .bt-row:not(.hdr):hover { background: var(--uli-cream); }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .pill.confirmed { background: var(--uli-green-bg); color: var(--uli-green); }
+    .pill.pending   { background: var(--uli-gold-light); color: var(--uli-gold); }
+
+    /* Responsive */
+    @media (max-width: 680px) {
+      .sidebar { display: none; }
+      .hdr-tabs .htab:last-child { display: none; }
+      body { padding: 0; }
+      .card { border-radius: 0; min-height: 100vh; }
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+      .bt-row { grid-template-columns: 1fr 1fr 60px; }
+      .bt-row > *:nth-child(3), .bt-row > *:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="logo-mark"><span>ULI</span></div>
+    <div class="hdr-text">
+      <h1 id="hdr-title">Schedule your interview</h1>
+      <p>Urban Land Institute · Talent Acquisition</p>
+    </div>
+    <div class="hdr-tabs">
+      <button class="htab active" id="tab-c" onclick="switchView('candidate')">Candidate</button>
+      <button class="htab" id="tab-a" onclick="switchView('admin')">Admin / TA</button>
+    </div>
+  </div>
+
+  <!-- CANDIDATE VIEW -->
+  <div id="candidate-view" class="body-wrap">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-top">
+        <div class="role-badge" id="sb-badge">HR Phone Screen</div>
+        <!-- ★ CUSTOMISE: Change role name below -->
+        <div class="sb-role" id="sb-role">Program Lead, Resilience (Impact Lab)</div>
+        <div class="meta-row">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="5"/><path d="M6.5 4v3l1.5 1.2"/></svg>
+          <span id="sb-dur">60 minutes</span>
+        </div>
+        <div class="meta-row">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="9" height="8" rx="1"/><path d="M2 5.5h9M5 1.5v2.5M8 1.5v2.5"/></svg>
+          <span id="sb-fmt">Zoom panel interview</span>
+        </div>
+        <div class="meta-row">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="4" r="2"/><path d="M3 11.5c0-2 1.6-3.5 3.5-3.5s3.5 1.5 3.5 3.5"/></svg>
+          <span id="sb-panel-size">3-person panel</span>
+        </div>
+        <div class="meta-row">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="5"/><path d="M6.5 3.5v3L8 7.8"/></svg>
+          <span>Eastern Time (ET)</span>
+        </div>
+      </div>
+      <div class="sb-panel">
+        <div class="sb-panel-title" id="sb-panel-label">Interview panel</div>
+        <div id="panel-display"></div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main" id="main"></div>
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="admin-view" style="display:none;"></div>
+
+</div><!-- /.card -->
+
+<script>
+/* ============================================================
+   ★★★  CUSTOMISATION — EDIT THIS SECTION  ★★★
+
+   1. CONFIG   — page title, role, duration, format options
+   2. PANELISTS — who's on the panel (name, initials, colour)
+   3. SLOTS    — which dates/times are available per panelist
+   4. FORMSPREE_ID — your Formspree endpoint for email delivery
+
+   Everything else below is the engine. You don't need to touch it.
+============================================================ */
+
+/* --- 1. CONFIG -------------------------------------------- */
+const CONFIG = {
+  roleTitle:    'Program Lead, Resilience (Impact Lab)',
+  screenType:   'First-round interview',     // Badge text in sidebar
+  duration:     60,                          // minutes
+  timezone:     'ET',
+  address:      '2001 L Street NW, Suite 200, Washington DC 20036',
+  recruiterName:'Simon Ross',
+  recruiterRole:'Global Head of Talent Acquisition',
+  recruiterInit:'SR',
+  recruiterColor:'#6b3a1f',
+  // ★ Your Formspree form ID — get free at formspree.io (takes 5 min)
+  // Replace with your own: e.g. 'xabcdefg'
+  formspreeId:  'YOUR_FORMSPREE_ID',
+};
+
+/* --- 2. PANELISTS ----------------------------------------- */
+// Remove or add objects. Keep to 3-4 max for clean display.
+const PANELISTS = [
+  { id:'lb', name:'Lindsay Brugger', initials:'LB', role:'VP, Resilience',        color:'#1a4a7a' },
+  { id:'aw', name:'Amy Witteman',    initials:'AW', role:'Chief Impact Officer',   color:'#2d5a27' },
+  { id:'sr', name:'Simon Ross',      initials:'SR', role:'Global Head of TA',      color:'#6b3a1f' },
+];
+
+/* --- 3. AVAILABLE SLOTS ----------------------------------- */
+// Format: 'YYYY-M-D': { 'H:MM AM/PM': { panelist_id: true/false, ... } }
+// true  = that panelist IS available at that time
+// false = that panelist is NOT available (conflict)
+//
+// ★ UPDATE THIS EVERY WEEK to match real Outlook calendars.
+// Once Outlook integration is live this will be auto-populated.
+
+const SLOTS = {
+  '2026-5-12': {
+    '10:00 AM': { lb:true,  aw:true,  sr:true  },
+    '11:00 AM': { lb:true,  aw:false, sr:true  },
+    '2:00 PM':  { lb:true,  aw:true,  sr:true  },
+    '3:30 PM':  { lb:false, aw:true,  sr:true  },
+  },
+  '2026-5-13': {
+    '9:00 AM':  { lb:true,  aw:true,  sr:true  },
+    '10:30 AM': { lb:true,  aw:false, sr:true  },
+    '2:00 PM':  { lb:false, aw:true,  sr:true  },
+    '3:00 PM':  { lb:true,  aw:true,  sr:true  },
+  },
+  '2026-5-14': {
+    '10:00 AM': { lb:true,  aw:true,  sr:true  },
+    '11:30 AM': { lb:true,  aw:true,  sr:false },
+    '2:30 PM':  { lb:true,  aw:true,  sr:true  },
+  },
+  '2026-5-19': {
+    '9:30 AM':  { lb:true,  aw:true,  sr:true  },
+    '11:00 AM': { lb:true,  aw:false, sr:true  },
+    '1:00 PM':  { lb:true,  aw:true,  sr:true  },
+  },
+  '2026-5-20': {
+    '10:00 AM': { lb:false, aw:true,  sr:true  },
+    '2:00 PM':  { lb:true,  aw:true,  sr:true  },
+    '3:30 PM':  { lb:true,  aw:true,  sr:true  },
+  },
+};
+
+/* ============================================================
+   ENGINE — no need to edit below this line
+============================================================ */
+
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+const WDAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let S = {
+  step: 1, month: 4, year: 2026,
+  day: null, slot: null, format: 'zoom',
+  form: { firstName:'', lastName:'', email:'', phone:'', tz: CONFIG.timezone, notes:'' },
+};
+
+/* Helpers */
+function key(y,m,d){ return `${y}-${m+1}-${d}`; }
+
+function dayType(y,m,d){
+  const k = key(y,m,d), slots = SLOTS[k];
+  if(!slots) return 'none';
+  const times = Object.keys(slots);
+  if(times.some(t => PANELISTS.every(p => slots[t][p.id]))) return 'all';
+  if(times.some(t => PANELISTS.some(p => slots[t][p.id])))  return 'partial';
+  return 'none';
+}
+
+function countAvail(avail){ return PANELISTS.filter(p => avail[p.id]).length; }
+
+function sortTimes(times){
+  return [...times].sort((a,b)=>{
+    const mins = t => {
+      const [tp, ap] = t.split(' ');
+      let [h,m] = tp.split(':').map(Number);
+      if(ap==='PM' && h!==12) h+=12;
+      if(ap==='AM' && h===12) h=0;
+      return h*60+m;
+    };
+    return mins(a)-mins(b);
+  });
+}
+
+/* Panel sidebar */
+function renderSidebar(avail){
+  const el = document.getElementById('panel-display');
+  if(!el) return;
+  el.innerHTML = PANELISTS.map(p => {
+    const dotClass = avail ? (avail[p.id] ? 'available' : 'busy') : 'unknown';
+    return `<div class="iv-card">
+      <div class="iv-avatar" style="background:${p.color}">${p.initials}</div>
+      <div class="iv-info"><p>${p.name}</p><p>${p.role}</p></div>
+      <div class="avail-dot ${dotClass}"></div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- STEP RENDERERS ---- */
+
+function stepsHtml(active){
+  const labels = ['Date & time','Format','Details','Confirm'];
+  return `<div class="steps">${labels.map((l,i)=>{
+    const n=i+1;
+    const cls = n<active?'done':n===active?'active':'pending';
+    const dot = n<active?'✓':n;
+    return (i>0?'<div class="step-line"></div>':'')+
+      `<div class="step-item">
+        <div class="step-dot ${cls}">${dot}</div>
+        <span class="step-lbl ${cls}">${l}</span>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+function renderStep1(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const first = new Date(S.year,S.month,1).getDay();
+  const last  = new Date(S.year,S.month+1,0).getDate();
+
+  let cells = WDAYS.map(d=>`<div class="cal-wday">${d}</div>`).join('');
+  for(let i=0;i<first;i++) cells+=`<div class="cal-day"></div>`;
+  for(let d=1;d<=last;d++){
+    const dt=new Date(S.year,S.month,d); dt.setHours(0,0,0,0);
+    const isPast=dt<today, isWknd=dt.getDay()===0||dt.getDay()===6;
+    const dtype = (!isPast&&!isWknd) ? dayType(S.year,S.month,d) : 'none';
+    const isSel = S.day===d;
+    let cls='cal-day';
+    if(dtype==='all') cls+=' all';
+    else if(dtype==='partial') cls+=' partial';
+    if(isSel) cls+=' sel';
+    const click = dtype!=='none' ? `onclick="selectDay(${d})"` : '';
+    let dots='';
+    if(dtype==='all')    dots=`<div class="dot-row">${'<div class="dot-pip" style="background:#2d7a3a"></div>'.repeat(3)}</div>`;
+    if(dtype==='partial')dots=`<div class="dot-row"><div class="dot-pip" style="background:#2d7a3a"></div><div class="dot-pip" style="background:#2d7a3a"></div><div class="dot-pip" style="background:var(--uli-muted)"></div></div>`;
+    cells+=`<div class="${cls}" ${click}>${d}${dots}</div>`;
+  }
+
+  let slotsHtml='';
+  if(S.day){
+    const k=key(S.year,S.month,S.day), daySlots=SLOTS[k]||{};
+    const times=sortTimes(Object.keys(daySlots));
+    slotsHtml=`<div class="slots-hdr">${MONTHS[S.month]} ${S.day} — available times</div>`;
+    if(!times.length){
+      slotsHtml+=`<div class="no-slots">No slots available for this date.</div>`;
+    } else {
+      slotsHtml+=`<div class="slot-scroll">`;
+      times.forEach(t=>{
+        const av=daySlots[t], cnt=countAvail(av), isAll=cnt===PANELISTS.length, isSel=S.slot===t;
+        const chips=PANELISTS.map(p=>{
+          const c=isSel?'dark':av[p.id]?'av':'un';
+          const dc=av[p.id]?(isSel?'rgba(255,255,255,0.8)':'#2d7a3a'):'#b03a2e';
+          return `<div class="chip ${c}"><div class="chip-dot" style="background:${dc}"></div>${p.initials}</div>`;
+        }).join('');
+        const badge=isAll?`<span class="full-badge">Full panel</span>`:`<span class="slot-cov">${cnt}/${PANELISTS.length}</span>`;
+        slotsHtml+=`<div class="slot-row${isSel?' sel':''}" onclick="selectSlot('${t}')">
+          <span class="slot-time">${t}</span>
+          <div class="slot-chips">${chips}</div>${badge}
+        </div>`;
+      });
+      slotsHtml+=`</div>`;
+    }
+  }
+
+  return stepsHtml(1)+`
+    <p class="ptitle">Choose a panel time</p>
+    <p class="psub">Green = full panel available · Amber = partial. Panelist availability shown per slot.</p>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-swatch" style="background:#e6f4ea;border:1px solid #2d7a3a"></div>Full panel free</div>
+      <div class="leg-item"><div class="leg-swatch" style="background:#fffbf5;border:1px solid rgba(196,146,42,0.4)"></div>Partial availability</div>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-btn" onclick="changeMonth(-1)">&#8249;</button>
+      <span class="cal-month">${MONTHS[S.month]} ${S.year}</span>
+      <button class="cal-btn" onclick="changeMonth(1)">&#8250;</button>
+    </div>
+    <div class="cal-grid">${cells}</div>
+    ${slotsHtml}
+    <div style="margin-top:16px">
+      <button class="btn-primary" onclick="goStep(2)" ${(!S.day||!S.slot)?'disabled':''}>Continue &rarr;</button>
+    </div>`;
+}
+
+function renderStep2(){
+  const fmtNote = {
+    zoom:     `A Zoom link will be generated and emailed to you. No account needed — join from your browser.`,
+    phone:    ``,
+    inperson: `<strong style="color:var(--uli-navy)">ULI HQ</strong> — ${CONFIG.address}. Lobby check-in required. Please bring a photo ID.`,
+  };
+  return stepsHtml(2)+`
+    <p class="ptitle">Interview format</p>
+    <p class="psub">${MONTHS[S.month]} ${S.day} · ${S.slot} ${CONFIG.timezone} · ${CONFIG.duration} min</p>
+    <div class="sum-card">
+      <div class="sum-icon">🗓</div>
+      <div class="sum-text">
+        <p>${MONTHS[S.month]} ${S.day}, ${S.year} · ${S.slot} ${CONFIG.timezone}</p>
+        <p>Panel interview · ${CONFIG.roleTitle}</p>
+      </div>
+    </div>
+    <p class="f-label" style="margin-bottom:8px">Select format</p>
+    <div class="fmt-row">
+      <button class="fmt-btn${S.format==='zoom'?' active':''}" onclick="setFmt('zoom')">📹 Zoom video</button>
+      <button class="fmt-btn${S.format==='phone'?' active':''}" onclick="setFmt('phone')">📞 Phone call</button>
+      <button class="fmt-btn${S.format==='inperson'?' active':''}" onclick="setFmt('inperson')">🏢 In-person (DC)</button>
+    </div>
+    ${fmtNote[S.format]?`<div class="info-box">${fmtNote[S.format]}</div>`:''}
+    ${S.format==='phone'?`<div class="f-field" style="max-width:260px;margin-bottom:12px"><label class="f-label">Your phone number</label><input class="f-input" type="tel" placeholder="+1 (555) 000-0000" value="${S.form.phone}" oninput="S.form.phone=this.value"/></div>`:''}
+    <div>
+      <button class="btn-sec" onclick="goStep(1)">&larr; Back</button>
+      <button class="btn-primary" onclick="goStep(3)">Continue &rarr;</button>
+    </div>`;
+}
+
+function renderStep3(){
+  const k=key(S.year,S.month,S.day), av=(SLOTS[k]||{})[S.slot]||{};
+  const ppRows=PANELISTS.filter(p=>av[p.id]).map(p=>`
+    <div class="pp-row">
+      <div class="iv-avatar" style="background:${p.color};width:22px;height:22px;border-radius:50%;font-size:9px">${p.initials}</div>
+      <span style="font-weight:500;color:var(--uli-navy)">${p.name}</span>
+      <span style="color:var(--uli-muted);margin-left:auto;font-size:11px">${p.role}</span>
+    </div>`).join('');
+  return stepsHtml(3)+`
+    <p class="ptitle">Your details</p>
+    <p class="psub">${MONTHS[S.month]} ${S.day} · ${S.slot} · ${S.format==='zoom'?'Zoom':S.format==='phone'?'Phone':'In-person DC'}</p>
+    <div class="panel-preview"><div class="pp-hdr">Your interview panel</div>${ppRows}</div>
+    <div class="form-grid">
+      <div class="f-field"><label class="f-label">First name</label><input class="f-input" type="text" placeholder="First name" value="${S.form.firstName}" oninput="S.form.firstName=this.value;updateBtn()"/></div>
+      <div class="f-field"><label class="f-label">Last name</label><input class="f-input" type="text" placeholder="Last name" value="${S.form.lastName}" oninput="S.form.lastName=this.value;updateBtn()"/></div>
+      <div class="f-field full"><label class="f-label">Email</label><input class="f-input" type="email" placeholder="you@email.com" value="${S.form.email}" oninput="S.form.email=this.value;updateBtn()"/></div>
+      <div class="f-field"><label class="f-label">Timezone</label>
+        <select class="f-input" onchange="S.form.tz=this.value" style="cursor:pointer">
+          ${['ET','CT','MT','PT','GMT','CET','AEST'].map(z=>`<option${S.form.tz===z?' selected':''}>${z}</option>`).join('')}
+        </select>
+      </div>
+      <div class="f-field full"><label class="f-label">Anything we should know? (optional)</label>
+        <input class="f-input" type="text" placeholder="e.g. accessibility needs, preferred name…" value="${S.form.notes}" oninput="S.form.notes=this.value"/>
+      </div>
+    </div>
+    <div>
+      <button class="btn-sec" onclick="goStep(2)">&larr; Back</button>
+      <button class="btn-primary" id="cont3-btn" onclick="goStep(4)" ${(!S.form.firstName||!S.form.lastName||!S.form.email)?'disabled':''}>Review &rarr;</button>
+    </div>`;
+}
+
+function renderStep4(){
+  const k=key(S.year,S.month,S.day), av=(SLOTS[k]||{})[S.slot]||{};
+  const panelNames=PANELISTS.filter(p=>av[p.id]).map(p=>p.initials).join(', ');
+  const fmtLabel={zoom:'Zoom video call',phone:'Phone call',inperson:`In-person (${CONFIG.address})`}[S.format];
+  return stepsHtml(4)+`
+    <p class="ptitle">Review &amp; confirm</p>
+    <p class="psub">Please check everything before confirming.</p>
+    <div class="conf-block">
+      <div class="conf-row"><span class="lbl">Date</span><span class="val">${MONTHS[S.month]} ${S.day}, ${S.year}</span></div>
+      <div class="conf-row"><span class="lbl">Time</span><span class="val">${S.slot} ${S.form.tz}</span></div>
+      <div class="conf-row"><span class="lbl">Duration</span><span class="val">${CONFIG.duration} minutes</span></div>
+      <div class="conf-row"><span class="lbl">Format</span><span class="val">${fmtLabel}</span></div>
+      <div class="conf-row"><span class="lbl">Panel</span><span class="val">${panelNames}</span></div>
+      <div class="conf-row"><span class="lbl">Name</span><span class="val">${S.form.firstName} ${S.form.lastName}</span></div>
+      <div class="conf-row"><span class="lbl">Email</span><span class="val">${S.form.email}</span></div>
+      ${S.form.phone?`<div class="conf-row"><span class="lbl">Phone</span><span class="val">${S.form.phone}</span></div>`:''}
+      ${S.form.notes?`<div class="conf-row"><span class="lbl">Notes</span><span class="val">${S.form.notes}</span></div>`:''}
+    </div>
+    <p style="font-size:11px;color:var(--uli-muted);line-height:1.6;margin-bottom:14px">
+      All panelists will receive a calendar invite. A confirmation will be sent to <strong style="color:var(--uli-slate)">${S.form.email}</strong> with ${S.format==='zoom'?'a Zoom link':S.format==='phone'?'a call-in number':'building access details'}.
+    </p>
+    <div>
+      <button class="btn-sec" onclick="goStep(3)">&larr; Edit</button>
+      <button class="btn-primary" onclick="submitBooking()">Confirm interview</button>
+    </div>`;
+}
+
+function renderStep5(){
+  const k=key(S.year,S.month,S.day), av=(SLOTS[k]||{})[S.slot]||{};
+  const avatars=PANELISTS.filter(p=>av[p.id]).map(p=>`<div style="width:22px;height:22px;border-radius:50%;background:${p.color};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;color:#fff;margin-left:-3px;border:2px solid #fff;flex-shrink:0">${p.initials}</div>`).join('');
+  return `<div class="success">
+    <div class="success-check">✓</div>
+    <h2 class="success-title">You're confirmed, ${S.form.firstName}.</h2>
+    <p class="success-sub">Your panel interview is booked for ${MONTHS[S.month]} ${S.day} at ${S.slot} ${S.form.tz}. All panelists have been notified with individual calendar invites.</p>
+    <div class="conf-block" style="max-width:360px;width:100%">
+      <div class="conf-row"><span class="lbl">Date</span><span class="val">${MONTHS[S.month]} ${S.day}</span></div>
+      <div class="conf-row"><span class="lbl">Time</span><span class="val">${S.slot} ${S.form.tz} · ${CONFIG.duration} min</span></div>
+      <div class="conf-row"><span class="lbl">Panel</span><span class="val"><div style="display:flex;gap:0;justify-content:flex-end">${avatars}</div></span></div>
+      <div class="conf-row"><span class="lbl">Format</span><span class="val">${S.format==='zoom'?'Zoom — link sent':S.format==='phone'?'Phone — details sent':'In-person — directions sent'}</span></div>
+    </div>
+    <button class="btn-outline" onclick="downloadICS()">+ Add to my calendar</button>
+  </div>`;
+}
+
+/* ---- ADMIN VIEW ---- */
+function renderAdmin(){
+  const bookings = [
+    { name:'A. Chandra',  date:'May 12 · 10:00 AM', fmt:'zoom',     status:'confirmed' },
+    { name:'M. Okafor',   date:'May 13 · 9:00 AM',  fmt:'zoom',     status:'confirmed' },
+    { name:'J. Patel',    date:'May 14 · 10:00 AM', fmt:'inperson', status:'pending'   },
+    { name:'R. Torres',   date:'May 19 · 9:30 AM',  fmt:'phone',    status:'pending'   },
+  ];
+  const fmtLbl={zoom:'📹 Zoom',phone:'📞 Phone',inperson:'🏢 In-person'};
+  const rows=bookings.map(b=>`
+    <div class="bt-row">
+      <span style="font-weight:500;color:var(--uli-navy)">${b.name}</span>
+      <span>${b.date}</span>
+      <span>${fmtLbl[b.fmt]}</span>
+      <span style="color:var(--uli-muted)">${CONFIG.roleTitle.split(',')[0]}</span>
+      <span class="pill ${b.status}">${b.status}</span>
+    </div>`).join('');
+  document.getElementById('admin-view').innerHTML=`<div class="admin-wrap">
+    <div class="admin-sec-title">Panel interview dashboard · ${CONFIG.roleTitle}</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="num">4</div><div class="lbl">Scheduled</div></div>
+      <div class="stat-card"><div class="num">2</div><div class="lbl">Confirmed</div></div>
+      <div class="stat-card"><div class="num">8</div><div class="lbl">Panel slots left</div></div>
+      <div class="stat-card"><div class="num">3</div><div class="lbl">Days to deadline</div></div>
+    </div>
+    <div class="admin-sec-title">Booked interviews</div>
+    <div class="booking-table">
+      <div class="bt-row hdr"><span>Candidate</span><span>Date &amp; time</span><span>Format</span><span>Role</span><span>Status</span></div>
+      ${rows}
+    </div>
+  </div>`;
+}
+
+/* ---- ACTIONS ---- */
+function selectDay(d){ S.day=d; S.slot=null; render(); }
+function selectSlot(t){ S.slot=t; render(); }
+function changeMonth(d){ S.month+=d; if(S.month>11){S.month=0;S.year++;} if(S.month<0){S.month=11;S.year--;} S.day=null;S.slot=null; render(); }
+function goStep(n){ S.step=n; render(); }
+function setFmt(f){ S.format=f; document.getElementById('sb-fmt').textContent=f==='zoom'?'Zoom panel interview':f==='phone'?'Phone call':'In-person (DC HQ)'; render(); }
+function updateBtn(){ const b=document.getElementById('cont3-btn'); if(b) b.disabled=!S.form.firstName||!S.form.lastName||!S.form.email; }
+
+function switchView(v){
+  document.getElementById('candidate-view').style.display=v==='candidate'?'flex':'none';
+  document.getElementById('admin-view').style.display=v==='admin'?'block':'none';
+  document.getElementById('tab-c').className='htab'+(v==='candidate'?' active':'');
+  document.getElementById('tab-a').className='htab'+(v==='admin'?' active':'');
+  if(v==='admin') renderAdmin();
+}
+
+/* ---- FORM SUBMISSION (Formspree) ---- */
+async function submitBooking(){
+  const k=key(S.year,S.month,S.day), av=(SLOTS[k]||{})[S.slot]||{};
+  const panel=PANELISTS.filter(p=>av[p.id]).map(p=>p.name).join(', ');
+  const payload={
+    candidate:   `${S.form.firstName} ${S.form.lastName}`,
+    email:       S.form.email,
+    phone:       S.form.phone||'—',
+    role:        CONFIG.roleTitle,
+    date:        `${MONTHS[S.month]} ${S.day}, ${S.year}`,
+    time:        `${S.slot} ${S.form.tz}`,
+    duration:    `${CONFIG.duration} minutes`,
+    format:      S.format,
+    panel:       panel,
+    notes:       S.form.notes||'—',
+    _subject:    `New interview booking: ${S.form.firstName} ${S.form.lastName} — ${MONTHS[S.month]} ${S.day}`,
+  };
+
+  if(CONFIG.formspreeId && CONFIG.formspreeId!=='YOUR_FORMSPREE_ID'){
+    try {
+      await fetch(`https://formspree.io/f/${CONFIG.formspreeId}`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify(payload),
+      });
+    } catch(e){ console.warn('Formspree submission failed:', e); }
+  } else {
+    console.log('Booking data (Formspree not configured):', payload);
+  }
+  S.step=5; render();
+}
+
+/* ---- ICS DOWNLOAD ---- */
+function downloadICS(){
+  const pad=n=>String(n).padStart(2,'0');
+  const dt=new Date(S.year,S.month,S.day);
+  const [timePart,ap]=S.slot.split(' ');
+  let [hh,mm]=timePart.split(':').map(Number);
+  if(ap==='PM'&&hh!==12) hh+=12;
+  if(ap==='AM'&&hh===12) hh=0;
+  const dtStr=`${S.year}${pad(S.month+1)}${pad(S.day)}T${pad(hh)}${pad(mm)}00`;
+  const endH=hh+Math.floor(CONFIG.duration/60), endM=mm+(CONFIG.duration%60);
+  const endStr=`${S.year}${pad(S.month+1)}${pad(S.day)}T${pad(endH)}${pad(endM<60?endM:endM-60)}00`;
+  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nDTSTART:${dtStr}\r\nDTEND:${endStr}\r\nSUMMARY:ULI Interview — ${CONFIG.roleTitle}\r\nDESCRIPTION:Panel interview for ${CONFIG.roleTitle} at Urban Land Institute.\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+  const a=document.createElement('a');
+  a.href='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+  a.download='uli-interview.ics';
+  a.click();
+}
+
+/* ---- MAIN RENDER ---- */
+function render(){
+  const el=document.getElementById('main');
+  if(!el) return;
+  const fns=[null,renderStep1,renderStep2,renderStep3,renderStep4,renderStep5];
+  el.innerHTML = (fns[S.step]||renderStep1)();
+  const k=S.slot?key(S.year,S.month,S.day):null;
+  const av=(k&&SLOTS[k]&&S.slot)?SLOTS[k][S.slot]:null;
+  renderSidebar(av);
+}
+
+render();
+</script>
+</body>
+</html>
